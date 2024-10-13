@@ -9,6 +9,9 @@ COPY pom.xml ./
 COPY mvnw ./
 COPY .mvn ./.mvn
 
+# Otorga permisos de ejecución al archivo mvnw
+RUN chmod +x mvnw
+
 # Copia el código fuente del proyecto
 COPY src ./src
 
