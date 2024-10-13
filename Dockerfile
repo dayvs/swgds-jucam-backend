@@ -1,5 +1,5 @@
 # Usa una imagen oficial de Java 17 (puedes cambiar la versión si es necesario)
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /app
