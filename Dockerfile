@@ -19,4 +19,4 @@ RUN ./mvnw clean install -DskipTests
 EXPOSE 8080
 
 # Comando para ejecutar la aplicación Spring Boot
-CMD ["java", "-jar", "target/swgdsjucambackend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/swgds-jucam-backend-0.0.1-SNAPSHOT.jar"]
