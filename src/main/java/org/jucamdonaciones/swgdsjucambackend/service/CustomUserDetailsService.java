@@ -4,7 +4,8 @@ import org.jucamdonaciones.swgdsjucambackend.model.User;
 import org.jucamdonaciones.swgdsjucambackend.repository.UserRepository;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+import java.util.Collections;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -28,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 true,
                 true,
                 true,
-                new ArrayList<>()
+                Collections.singletonList(new SimpleGrantedAuthority(usuario.getRol().getNombre()))                
         );
     }
 }
