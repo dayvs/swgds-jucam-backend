@@ -32,7 +32,7 @@ public class UserController {
         List<User> usuarios = userRepository.findAll();
         List<Object> response = usuarios.stream().map(usuario -> {
             return new Object() {
-                public Long usuario_id = usuario.getUsuario_id();
+                public Long usuarioId = usuario.getUsuarioId();
                 public String nombre = usuario.getNombre();
                 public String apellidos = usuario.getApellidos();
                 public String email = usuario.getEmail();
@@ -43,15 +43,15 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // 2. GET /usuarios/{usuario_id} - Obtener un usuario por ID
-    @GetMapping("/{usuario_id}")
-    public ResponseEntity<?> obtenerUsuarioPorId(@PathVariable Long usuario_id) {
-        User usuario = userRepository.findById(usuario_id).orElse(null);
+    // 2. GET /usuarios/{usuarioId} - Obtener un usuario por ID
+    @GetMapping("/{usuarioId}")
+    public ResponseEntity<?> obtenerUsuarioPorId(@PathVariable Long usuarioId) {
+        User usuario = userRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(404).body("Usuario no encontrado");
         }
         Object response = new Object() {
-            public Long usuario_id = usuario.getUsuario_id();
+            public Long usuarioId = usuario.getUsuarioId();
             public String nombre = usuario.getNombre();
             public String apellidos = usuario.getApellidos();
             public String email = usuario.getEmail();
@@ -61,10 +61,10 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // 3. PUT /usuarios/{usuario_id} - Actualizar un usuario
-    @PutMapping("/{usuario_id}")
-    public ResponseEntity<?> actualizarUsuario(@PathVariable Long usuario_id, @RequestBody User updatedUser) {
-        User existingUser = userRepository.findById(usuario_id).orElse(null);
+    // 3. PUT /usuarios/{usuarioId} - Actualizar un usuario
+    @PutMapping("/{usuarioId}")
+    public ResponseEntity<?> actualizarUsuario(@PathVariable Long usuarioId, @RequestBody User updatedUser) {
+        User existingUser = userRepository.findById(usuarioId).orElse(null);
         if (existingUser == null) {
             return ResponseEntity.status(404).body("Usuario no encontrado");
         }
@@ -100,10 +100,10 @@ public class UserController {
         }
     }
     
-    // 4. POST /usuarios/{usuario_id}/reset-password - Restablecer contraseña
-    @PostMapping("/{usuario_id}/reset-password")
-    public ResponseEntity<?> resetPasswordByAdmin(@PathVariable Long usuario_id) {
-        User user = userRepository.findById(usuario_id).orElse(null);
+    // 4. POST /usuarios/{usuarioId}/reset-password - Restablecer contraseña
+    @PostMapping("/{usuarioId}/reset-password")
+    public ResponseEntity<?> resetPasswordByAdmin(@PathVariable Long usuarioId) {
+        User user = userRepository.findById(usuarioId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(404).body("Usuario no encontrado");
         }
@@ -116,10 +116,10 @@ public class UserController {
 
 
 
-    // 5. DELETE /usuarios/{usuario_id} - Eliminar un usuario
-    @DeleteMapping("/{usuario_id}")
-    public ResponseEntity<?> eliminarUsuario(@PathVariable Long usuario_id) {
-        User usuario = userRepository.findById(usuario_id).orElse(null);
+    // 5. DELETE /usuarios/{usuarioId} - Eliminar un usuario
+    @DeleteMapping("/{usuarioId}")
+    public ResponseEntity<?> eliminarUsuario(@PathVariable Long usuarioId) {
+        User usuario = userRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(404).body("Usuario no encontrado");
         }
@@ -165,7 +165,7 @@ public class UserController {
 
         // Construir la respuesta
         Object response = new Object() {
-            public Long usuario_id = newUser.getUsuario_id();
+            public Long usuarioId = newUser.getUsuarioId();
             public String nombre = newUser.getNombre();
             public String apellidos = newUser.getApellidos();
             public String email = newUser.getEmail();
