@@ -9,13 +9,21 @@ import org.jucamdonaciones.swgdsjucambackend.payload.LoginRequest;
 import org.jucamdonaciones.swgdsjucambackend.repository.PasswordResetTokenRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.UserRepository;
 import org.jucamdonaciones.swgdsjucambackend.service.EmailService;
-//import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,11 +32,11 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/auth")
 public class AuthController {
 
-   // private final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-   // private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
 
 

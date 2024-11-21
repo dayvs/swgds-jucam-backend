@@ -1,0 +1,17 @@
+org\jucamdonaciones\swgdsjucambackend\service\CustomUserDetailsService.class
+org\jucamdonaciones\swgdsjucambackend\model\PasswordResetToken.class
+org\jucamdonaciones\swgdsjucambackend\repository\PasswordResetTokenRepository.class
+org\jucamdonaciones\swgdsjucambackend\controller\UserController$ErrorResponse.class
+org\jucamdonaciones\swgdsjucambackend\controller\UserController.class
+org\jucamdonaciones\swgdsjucambackend\payload\LoginRequest.class
+org\jucamdonaciones\swgdsjucambackend\config\SecurityConfig.class
+org\jucamdonaciones\swgdsjucambackend\controller\AuthController.class
+org\jucamdonaciones\swgdsjucambackend\service\EmailService.class
+org\jucamdonaciones\swgdsjucambackend\controller\UserController$1.class
+org\jucamdonaciones\swgdsjucambackend\model\Role.class
+org\jucamdonaciones\swgdsjucambackend\SwgdsJucamBackendApplication.class
+org\jucamdonaciones\swgdsjucambackend\controller\UserController$2.class
+org\jucamdonaciones\swgdsjucambackend\repository\UserRepository.class
+org\jucamdonaciones\swgdsjucambackend\model\User.class
+org\jucamdonaciones\swgdsjucambackend\repository\RoleRepository.class
+org\jucamdonaciones\swgdsjucambackend\controller\UserController$3.class

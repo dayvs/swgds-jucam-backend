@@ -1,5 +1,0 @@
-# Created at 2024-10-13T14:08:45.129
-Boot Manifest-JAR contains absolute paths in classpath 'F:\Libraries\Documents\Proyectos Visual Studio\UNADM\Proyecto Terminal\swgds-jucam-backend\target\test-classes'
-Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
-'other' has different root
-

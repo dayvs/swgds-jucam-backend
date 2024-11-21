@@ -4,6 +4,7 @@ import org.jucamdonaciones.swgdsjucambackend.model.User;
 import org.jucamdonaciones.swgdsjucambackend.model.Role;
 import org.jucamdonaciones.swgdsjucambackend.repository.UserRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,7 @@ public class UserController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
     public UserController(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
