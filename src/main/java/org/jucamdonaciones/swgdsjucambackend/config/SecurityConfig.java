@@ -33,7 +33,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("*")); // Cambia esto si necesitas restringir los orígenes
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false); // Cambiar a true si necesitas enviar cookies o credenciales
+        configuration.setAllowCredentials(true); 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
