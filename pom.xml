@@ -57,10 +57,11 @@
 			<version>42.7.4</version>
 		</dependency>
 		<!-- Spring Boot Starter Security -->
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+		</dependency>		
 		<!-- Spring Boot Starter Mail -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
