@@ -30,15 +30,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // Dominio de netlify
+        configuration.setAllowedOrigins(Arrays.asList("*")); // Cambia esto si necesitas restringir los orígenes
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false); // Permitir credenciales (autenticación)
+        configuration.setAllowCredentials(false); // Cambiar a true si necesitas enviar cookies o credenciales
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -67,19 +66,17 @@ public class SecurityConfig {
                     response.setStatus(HttpServletResponse.SC_OK);
                 })
             )
-            .sessionManagement(session -> session
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .invalidSessionUrl("/auth/login")
-                .sessionFixation().none()
-            )
+            .sessionManagement(session -> {
+                session
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                    .invalidSessionUrl("/auth/login")
+                    .sessionFixation(sessionFixation -> sessionFixation.none());
+                session
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false);
+            })
             .userDetailsService(userDetailsService);
 
         return http.build();
     }
-
-
 }
