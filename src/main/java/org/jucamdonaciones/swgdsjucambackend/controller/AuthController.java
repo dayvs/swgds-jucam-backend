@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+
 
 @RestController
 @RequestMapping("/auth")
@@ -102,6 +104,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
+    @Transactional
     public ResponseEntity<?> resetPassword(@RequestParam String token) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token);
         if (resetToken == null || resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {

@@ -6,6 +6,8 @@ import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import jakarta.transaction.Transactional;
+
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -16,7 +18,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    @Override
+    @Transactional
+    @Override    
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User usuario = userRepository.findByEmail(email);
         if (usuario == null) {

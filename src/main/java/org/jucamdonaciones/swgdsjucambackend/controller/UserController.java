@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import jakarta.transaction.Transactional;
+
+
 @RestController
 @RequestMapping("/usuarios")
 public class UserController {
@@ -30,23 +33,23 @@ public class UserController {
 
     // 1. GET /usuarios - Obtener la lista de usuarios
     @GetMapping
+    @Transactional
     public ResponseEntity<?> obtenerUsuarios() {
         List<User> usuarios = userRepository.findAll();
-        List<Object> response = usuarios.stream().map(usuario -> {
-            return new Object() {
-                public Long usuarioId = usuario.getUsuarioId();
-                public String nombre = usuario.getNombre();
-                public String apellidos = usuario.getApellidos();
-                public String email = usuario.getEmail();
-                public String rol = usuario.getRol().getNombre();
-                public String estado = usuario.getEstado();
-            };
+        List<Object> response = usuarios.stream().map(usuario -> new Object() {
+            public Long usuarioId = usuario.getUsuarioId();
+            public String nombre = usuario.getNombre();
+            public String apellidos = usuario.getApellidos();
+            public String email = usuario.getEmail();
+            public String rol = usuario.getRol().getNombre();
+            public String estado = usuario.getEstado();
         }).collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
 
     // 2. GET /usuarios/{usuarioId} - Obtener un usuario por ID
-    @GetMapping("/{usuarioId}")
+    @Transactional
+    @GetMapping("/{usuarioId}")    
     public ResponseEntity<?> obtenerUsuarioPorId(@PathVariable Long usuarioId) {
         User usuario = userRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
