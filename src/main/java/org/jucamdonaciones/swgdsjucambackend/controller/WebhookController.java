@@ -1,20 +1,28 @@
 package org.jucamdonaciones.swgdsjucambackend.controller;
 
+import java.math.BigDecimal;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+
 import org.jucamdonaciones.swgdsjucambackend.model.Donacion;
 import org.jucamdonaciones.swgdsjucambackend.model.Donador;
 import org.jucamdonaciones.swgdsjucambackend.payload.WebhookPayload;
 import org.jucamdonaciones.swgdsjucambackend.repository.DonacionRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.DonadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
 
 
 
@@ -156,11 +164,11 @@ public class WebhookController {
                     donacion.setDonador(donador);
                     
                     // Convertir amount a Double
-                    Double amount;
+                    BigDecimal amount;
                     try {
-                        amount = Double.valueOf(checkoutResponse.get("amount").toString());
+                        amount = new BigDecimal(checkoutResponse.get("amount").toString());
                     } catch (Exception ex) {
-                        amount = 0.0;
+                        amount = BigDecimal.ZERO;
                     }
                     donacion.setMonto(amount);
                     donacion.setMetodoPago(paymentMethodType);
