@@ -19,5 +19,4 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    // Puedes agregar más métodos para otros tipos de correos
 }

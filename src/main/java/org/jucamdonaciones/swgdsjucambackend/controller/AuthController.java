@@ -9,7 +9,6 @@ import org.jucamdonaciones.swgdsjucambackend.payload.LoginRequest;
 import org.jucamdonaciones.swgdsjucambackend.repository.PasswordResetTokenRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.UserRepository;
 import org.jucamdonaciones.swgdsjucambackend.service.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,7 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -69,11 +67,18 @@ public class AuthController {
             // Establecer la autenticación en el contexto de seguridad
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            // Variable de sesión que indica que el usuario está autenticado
+            request.getSession().setAttribute("loggedIn", true);
+
             //validar nombre
             String username = authentication.getName();
-            return ResponseEntity.ok("Usuario " + username + " autenticado exitosamente");
+
+            // Retornar respuesta con headers que evitan cachear la respuesta (para que al usar "atrás" se solicite de nuevo y se valide la sesión)
+            return ResponseEntity.ok()
+                .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                .body("Usuario " + username + " autenticado exitosamente");
             
-            // Lógica adicional si es necesario    
+              
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body("Credenciales incorrectas");
         }
@@ -128,6 +133,13 @@ public class AuthController {
         if (authentication != null) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
         }
+
+        // Invalidar la sesión si existe
+        if (request.getSession(false) != null) {
+            request.getSession().invalidate();
+        }
+
+
         return ResponseEntity.ok("Sesión cerrada exitosamente");
     }
 }
