@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DonadorRepository extends JpaRepository<Donador, Long> {
-    // Puedes agregar métodos personalizados, por ejemplo, para buscar por email.
 }
