@@ -45,7 +45,8 @@ public class PagoController {
             payload.put("redirection_url", redirectionUrl);
             
             // URL del webhook
-            payload.put("webhook_url", "https://jucamdonaciones.org/webhook");
+            payload.put("webhook_url", "https://jucamdonaciones.org/webhook/pagos");
+            
             
             // Instanciar RestTemplate (incluido en spring-boot-starter-web)
             RestTemplate restTemplate = new RestTemplate();
