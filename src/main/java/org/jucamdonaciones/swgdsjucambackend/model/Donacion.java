@@ -47,7 +47,7 @@ public class Donacion {
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
-    private Frecuencia frecuencia = Frecuencia.UNICA;
+    private Frecuencia frecuencia = Frecuencia.única;
 
     @Column(nullable = true)
     private Integer suscripcionId;
@@ -58,7 +58,7 @@ public class Donacion {
     }
 
     public enum Frecuencia {
-        UNICA, MENSUAL, TRIMESTRAL, ANUAL
+        única, mensual, trimestral, anual
     }
 
     // Getters y Setters
