@@ -1,6 +1,11 @@
 package org.jucamdonaciones.swgdsjucambackend.controller;
 
+import org.jucamdonaciones.swgdsjucambackend.model.Donacion;
+import org.jucamdonaciones.swgdsjucambackend.model.Donador;
 import org.jucamdonaciones.swgdsjucambackend.payload.WebhookPayload;
+import org.jucamdonaciones.swgdsjucambackend.repository.DonacionRepository;
+import org.jucamdonaciones.swgdsjucambackend.repository.DonadorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -11,12 +16,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+
+
 @RestController
 @RequestMapping("/webhook")
 public class WebhookController {
 
     // Guarda la cabecera de autorización de forma centralizada
     private static final String AUTH_HEADER = "Basic NTYxZTY4ODgtNDJlNi00OTNhLTg3ODQtZDgyNDVlMTE3YTlkOmFmMzljYWYyLTgyMGYtNDAzMC1hYWU5LTlkNGU2ZDE2ZmI0YQ==";
+
+    @Autowired
+    private DonadorRepository donadorRepository;
+
+    @Autowired
+    private DonacionRepository donacionRepository;
+
 
     @PostMapping("/pagos")
     public ResponseEntity<?> recibirWebhook(@RequestBody WebhookPayload payload) {
@@ -27,15 +41,11 @@ public class WebhookController {
         String paymentRequestId = payload.getId();
         String eventType = payload.getEvent_type();
 
-        // (Opcional) Aquí se podría validar la firma del webhook, si la API de Clip lo requiere.
-
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", AUTH_HEADER);
-
-        // ------------------------------------------------------------
-        // Paso 1: Consultar el estado de la solicitud de pago (checkout)
-        // ------------------------------------------------------------
+        
+        // Paso 1: Consultar el estado de la solicitud de pago (checkout)        
         String checkoutUrl = "https://api.payclip.com/v2/checkout/" + paymentRequestId;
         HttpEntity<String> checkoutEntity = new HttpEntity<>(headers);
 
@@ -61,16 +71,16 @@ public class WebhookController {
 
         // Solo proceder al paso 2 si el status es CHECKOUT_COMPLETED
         if ("CHECKOUT_COMPLETED".equals(status)) {
-            // Extraer receipt_no ya que solo se encuentra cuando el status es COMPLETED
+            // Extraer receipt_no
             String receiptNo = (String) checkoutResponse.get("receipt_no");
             if (receiptNo == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body("No se encontró receipt_no en la respuesta, a pesar de ser CHECKOUT_COMPLETED");
             }
             
-            // ------------------------------------------------------------
+            
             // Paso 2: Consultar la información del pago (payment)
-            // ------------------------------------------------------------
+            
             // Calcular "from" y "to" en formato ISO 8601 para la consulta:
             // "from": día en curso a las 00:00:00 UTC y "to": "from" + 24 horas
             ZonedDateTime nowUtc = ZonedDateTime.now(ZoneOffset.UTC);
@@ -117,12 +127,59 @@ public class WebhookController {
             System.out.println("Status Detail Code: " + statusCode);
             System.out.println("Status Detail Message: " + statusMessage);
 
-            // Combinamos la información obtenida para guardarla en la BD.
-            return ResponseEntity.ok("Webhook procesado correctamente con status COMPLETED");
+            // Determinar el estado de la transacción
+            Donacion.Estado estadoDonacion = ("AP-PAI01".equals(statusCode) && "paid".equalsIgnoreCase(statusMessage))
+                    ? Donacion.Estado.exitoso
+                    : Donacion.Estado.fallido;
+
+            // Registrar la información en la base de datos
+            // ----------------------------------------------------------------
+            // Extraer y separar purchase_description
+            String purchaseDescription = (String) checkoutResponse.get("purchase_description");
+            if (purchaseDescription != null) {
+                String[] parts = purchaseDescription.split("-");
+                if (parts.length == 3) {
+                    String donorName = parts[0];
+                    String donorEmail = parts[1];
+                    String donorTelefono = parts[2];
+
+                    // Registrar en donadores
+                    Donador donador = new Donador();
+                    donador.setNombre(donorName);
+                    donador.setEmail(donorEmail);
+                    donador.setTelefono(donorTelefono);
+                    // consentimiento_datos ya se inicializa en true y fecha_registro en now
+                    donador = donadorRepository.save(donador);
+
+                    // Registrar en donaciones
+                    Donacion donacion = new Donacion();
+                    donacion.setDonador(donador);
+                    
+                    // Convertir amount a Double
+                    Double amount;
+                    try {
+                        amount = Double.valueOf(checkoutResponse.get("amount").toString());
+                    } catch (Exception ex) {
+                        amount = 0.0;
+                    }
+                    donacion.setMonto(amount);
+                    donacion.setMetodoPago(paymentMethodType);
+                    donacion.setEstado(estadoDonacion);
+                    donacion.setTransaccionId(paymentRequestId);
+                    donacion.setAnonimato(false);
+                    // frecuencia se deja por defecto como UNICA y suscripcion_id en null
+                    donacionRepository.save(donacion);
+                } else {
+                    System.err.println("El purchase_description no tiene el formato esperado: " + purchaseDescription);
+                }
+            } else {
+                System.err.println("No se encontró purchase_description en la respuesta del checkout");
+            }
+
+            return ResponseEntity.ok("Webhook procesado y datos guardados correctamente");
         } else {
-            // Para otros status (por ejemplo, CHECKOUT_CREATED o CHECKOUT_PENDING)
-            System.out.println("Status es " + status + ". Se omite la consulta a payments.");
-            return ResponseEntity.ok("Webhook procesado correctamente. Status: " + status + " (sin consulta a payments)");
+            System.out.println("Status es " + status + ". No se registra información en BD.");
+            return ResponseEntity.ok("Webhook procesado. Status: " + status + " (sin registro en BD)");
         }
     }
 }
