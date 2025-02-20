@@ -1,11 +1,19 @@
 package org.jucamdonaciones.swgdsjucambackend.controller;
 
-import org.jucamdonaciones.swgdsjucambackend.payload.PaymentRequest;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jucamdonaciones.swgdsjucambackend.payload.PaymentRequest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/pago")
@@ -45,7 +53,7 @@ public class PagoController {
             payload.put("redirection_url", redirectionUrl);
             
             // URL del webhook
-            payload.put("webhook_url", "https://jucamdonaciones.org/webhook/pagos");
+            payload.put("webhook_url", "https://swgds-jucam-backend.onrender.com/webhook/pagos");
             
             
             // Instanciar RestTemplate (incluido en spring-boot-starter-web)
