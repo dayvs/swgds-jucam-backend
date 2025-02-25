@@ -2,6 +2,7 @@ package org.jucamdonaciones.swgdsjucambackend.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -86,6 +87,49 @@ public class WebhookSuscripcionesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No se encontró subscription_id en el invoice");
         }
         
+        // Para obtener el método de pago real, primero extraemos el payment_request_id del invoice
+        String prId = (String) invoiceResponse.get("payment_request_id");
+        String metodoPago = "desconocido";
+        if (prId != null) {
+            // Consultar el checkout correspondiente al payment_request_id
+            String checkoutUrlForPR = "https://api.payclip.com/v2/checkout/" + prId;
+            HttpEntity<String> checkoutEntityForPR = new HttpEntity<>(headers);
+            try {
+                ResponseEntity<Map> checkoutResponseEntityForPR = restTemplate.exchange(checkoutUrlForPR, HttpMethod.GET, checkoutEntityForPR, Map.class);
+                Map<String, Object> checkoutResponseForPR = checkoutResponseEntityForPR.getBody();
+                if (checkoutResponseForPR != null) {
+                    String receiptNo = (String) checkoutResponseForPR.get("receipt_no");
+                    if (receiptNo != null) {
+                        // Calcular from y to para el día en curso
+                        LocalDateTime now = LocalDateTime.now();
+                        LocalDateTime fromDate = now.toLocalDate().atStartOfDay();
+                        LocalDateTime toDate = fromDate.plusDays(1);
+                        String fromStr = java.time.Instant.from(fromDate.atZone(ZoneOffset.UTC)).toString();
+                        String toStr = java.time.Instant.from(toDate.atZone(ZoneOffset.UTC)).toString();
+                        
+                        String paymentsUrlForPR = "https://api.payclip.com/payments?from=" + fromStr + "&to=" + toStr + "&receipt_no=" + receiptNo;
+                        HttpEntity<String> paymentsEntityForPR = new HttpEntity<>(headers);
+                        ResponseEntity<Map> paymentsResponseEntityForPR = restTemplate.exchange(paymentsUrlForPR, HttpMethod.GET, paymentsEntityForPR, Map.class);
+                        Map<String, Object> paymentsResponseForPR = paymentsResponseEntityForPR.getBody();
+                        if (paymentsResponseForPR != null) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> results = (List<Map<String, Object>>) paymentsResponseForPR.get("results");
+                            if (results != null && !results.isEmpty()) {
+                                Map<String, Object> paymentDetails = results.get(0);
+                                @SuppressWarnings("unchecked")
+                                Map<String, Object> pm = (Map<String, Object>) paymentDetails.get("payment_method");
+                                if (pm != null && pm.get("type") != null) {
+                                    metodoPago = pm.get("type").toString();
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al consultar checkout/payments: " + e.getMessage());
+            }
+        }
+        
         // Verificar si la suscripción ya está registrada en la BD
         Suscripcion suscripcionExistente = suscripcionRepository.findByClipSubscriptionId(clipSubscriptionId);
         
@@ -96,13 +140,9 @@ public class WebhookSuscripcionesController {
         } catch (Exception ex) {
             amount = BigDecimal.ZERO;
         }
-        @SuppressWarnings("unchecked")
-        Map<String, Object> paymentMethod = (Map<String, Object>) invoiceResponse.get("payment_method");
-        String metodoPago = paymentMethod != null ? (String) paymentMethod.get("type") : "desconocido";
         String transaccionId = invoiceId;  // Usamos el ID del invoice como transacción
         LocalDateTime fechaUltimoPago = null;
         if (invoiceResponse.get("paid_at") != null) {
-            // Se asume formato ISO (por ejemplo "2025-02-22T01:11:44Z"); se trunca la parte 'Z'
             String paidAtStr = invoiceResponse.get("paid_at").toString();
             fechaUltimoPago = LocalDateTime.parse(paidAtStr.substring(0, 19));
         }
@@ -135,23 +175,26 @@ public class WebhookSuscripcionesController {
             String customerEmail = (String) customer.get("email");
             String customerPhone = (String) customer.get("phone");
             
-            Suscriptor suscriptor = new Suscriptor();
-            suscriptor.setNombre(firstName + " " + lastName);
-            suscriptor.setEmail(customerEmail);
-            suscriptor.setTelefono(customerPhone);
-            suscriptor.setConsentimientoDatos(true);
-            suscriptor.setFechaRegistro(LocalDateTime.now());
-            suscriptor = suscriptorRepository.save(suscriptor);
+            // Consultar si ya existe un suscriptor con este email y teléfono
+            Suscriptor suscriptor = suscriptorRepository.findByEmailAndTelefono(customerEmail, customerPhone);
+            if (suscriptor == null) {
+                suscriptor = new Suscriptor();
+                suscriptor.setNombre(firstName + " " + lastName);
+                suscriptor.setEmail(customerEmail);
+                suscriptor.setTelefono(customerPhone);
+                suscriptor.setConsentimientoDatos(true);
+                suscriptor.setFechaRegistro(LocalDateTime.now());
+                suscriptor = suscriptorRepository.save(suscriptor);
+            }
             
             // Registrar la nueva suscripción
             Suscripcion nuevaSuscripcion = new Suscripcion();
             nuevaSuscripcion.setClipSubscriptionId(clipSubscriptionId);
             nuevaSuscripcion.setSuscriptor(suscriptor);
-            // El price_id de la suscripción se usa como servicio_id
+            // El price_id de la suscripción se usa como servicio_id (convertido a UUID)
             String servicioIdStr = (String) subscriptionResponse.get("price_id");
             nuevaSuscripcion.setServicioId(UUID.fromString(servicioIdStr));
             nuevaSuscripcion.setFechaInicio(LocalDateTime.now());
-            // Estado: se toma el valor "status" de la suscripción de Clip
             String subStatus = (String) subscriptionResponse.get("status");
             if ("active".equalsIgnoreCase(subStatus)) {
                 nuevaSuscripcion.setEstado(EstadoSuscripcion.activa);
@@ -191,7 +234,6 @@ public class WebhookSuscripcionesController {
             donacion.setEstado(Estado.exitoso);
             donacion.setTransaccionId(transaccionId);
             donacion.setAnonimato(false);
-            // Para frecuencia, se puede establecer según la configuración del servicio; aquí usamos 'única'
             donacion.setFrecuencia(Donacion.Frecuencia.única);
             donacion.setSuscripcionId(suscripcionExistente.getId());
             donacionRepository.save(donacion);

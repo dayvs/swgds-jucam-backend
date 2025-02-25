@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SuscriptorRepository extends JpaRepository<Suscriptor, Integer> {
-    
+    Suscriptor findByEmailAndTelefono(String email, String telefono);    
 }
