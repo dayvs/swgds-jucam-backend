@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.jucamdonaciones.swgdsjucambackend.model.Donacion;
 import org.jucamdonaciones.swgdsjucambackend.model.Donacion.Estado;
@@ -15,7 +16,11 @@ import org.jucamdonaciones.swgdsjucambackend.repository.DonacionRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.SuscripcionRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.SuscriptorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -143,8 +148,8 @@ public class WebhookSuscripcionesController {
             nuevaSuscripcion.setClipSubscriptionId(clipSubscriptionId);
             nuevaSuscripcion.setSuscriptor(suscriptor);
             // El price_id de la suscripción se usa como servicio_id
-            String servicioId = (String) subscriptionResponse.get("price_id");
-            nuevaSuscripcion.setServicioId(servicioId);
+            String servicioIdStr = (String) subscriptionResponse.get("price_id");
+            nuevaSuscripcion.setServicioId(UUID.fromString(servicioIdStr));
             nuevaSuscripcion.setFechaInicio(LocalDateTime.now());
             // Estado: se toma el valor "status" de la suscripción de Clip
             String subStatus = (String) subscriptionResponse.get("status");

@@ -1,7 +1,18 @@
 package org.jucamdonaciones.swgdsjucambackend.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "suscripciones")
@@ -21,9 +32,9 @@ public class Suscripcion {
     @JoinColumn(name = "suscriptor_id", nullable = false)
     private Suscriptor suscriptor;
 
-    // Almacenamos el price_id de Clip, que coincide con el servicio (se asume formato UUID en texto)
-    @Column(nullable = false, length = 36)
-    private String servicioId;
+    // Almacenamos el price_id de Clip, que coincide con el servicio
+    @Column(nullable = false)
+    private UUID servicioId;
 
     @Column(nullable = false)
     private LocalDateTime fechaInicio = LocalDateTime.now();
@@ -77,11 +88,11 @@ public class Suscripcion {
         this.suscriptor = suscriptor;
     }
 
-    public String getServicioId() {
+    public UUID getServicioId() {
         return servicioId;
     }
 
-    public void setServicioId(String servicioId) {
+    public void setServicioId(UUID servicioId) {
         this.servicioId = servicioId;
     }
 
