@@ -76,6 +76,7 @@ public class AuthController {
             java.util.Map<String, Object> responseData = new java.util.HashMap<>();
             responseData.put("email", user.getEmail());
             responseData.put("rol", user.getRol().getNombre());
+            responseData.put("requiereCambio", user.getRequiere_cambio_contraseña());
 
             return ResponseEntity.ok()
                 .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
