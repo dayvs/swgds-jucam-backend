@@ -70,15 +70,16 @@ public class AuthController {
             // Variable de sesión que indica que el usuario está autenticado
             request.getSession().setAttribute("loggedIn", true);
 
-            //validar nombre
-            String username = authentication.getName();
+            // Obtener el usuario autenticado y sus detalles (email y rol)
+            User user = userRepository.findByEmail(loginRequest.getEmail());
+            // Construir la respuesta en formato JSON
+            java.util.Map<String, Object> responseData = new java.util.HashMap<>();
+            responseData.put("email", user.getEmail());
+            responseData.put("rol", user.getRol().getNombre());
 
-            // Retornar respuesta con headers que evitan cachear la respuesta (para que al usar "atrás" se solicite de nuevo y se valide la sesión)
             return ResponseEntity.ok()
                 .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-                .body("Usuario " + username + " autenticado exitosamente");
-            
-              
+                .body(responseData);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body("Credenciales incorrectas");
         }
