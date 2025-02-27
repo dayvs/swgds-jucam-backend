@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jakarta.transaction.Transactional;
@@ -193,4 +194,42 @@ public class UserController {
             this.mensaje = mensaje;
         }
     }
+
+    @PutMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String oldPassword = payload.get("oldPassword");
+        String newPassword = payload.get("newPassword");
+        String confirmPassword = payload.get("confirmPassword");
+        
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+        }
+        
+        // Validar que la contraseña antigua coincida
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            return ResponseEntity.badRequest().body("La contraseña antigua no es correcta");
+        }
+        
+        // Validar que la nueva contraseña sea diferente a la antigua
+        if (oldPassword.equals(newPassword)) {
+            return ResponseEntity.badRequest().body("La nueva contraseña no puede ser la misma que la contraseña anterior");
+        }
+        
+        // Validar que la nueva contraseña y su confirmación coincidan
+        if (!newPassword.equals(confirmPassword)) {
+            return ResponseEntity.badRequest().body("La contraseña no coincide");
+        }
+        
+        try {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setRequiere_cambio_contraseña(false);
+            userRepository.save(user);
+            return ResponseEntity.ok("Contraseña actualizada correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("No se pudo guardar tu nueva contraseña, intenta de nuevo más tarde");
+        }
+    }
+
 }
