@@ -144,4 +144,28 @@ public class AuthController {
 
         return ResponseEntity.ok("Sesión cerrada exitosamente");
     }
+
+
+    @PostMapping("/reiniciar-password")
+    public ResponseEntity<?> reiniciarPassword(@RequestParam String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("No se encontró el usuario. Verifica que tu correo sea correcto");
+        }
+        try {
+            // Resetear la contraseña a "Password1" y marcar que se requiere cambio
+            user.setPassword(passwordEncoder.encode("Password1"));
+            user.setRequiere_cambio_contraseña(true);
+            userRepository.save(user);
+            
+            // Enviar correo con instrucciones: el link debe dirigir a https://jucamdonaciones.org/contrasena
+            String resetLink = "https://jucamdonaciones.org/contrasena";
+            emailService.sendResetEmail(email, resetLink);
+            
+            return ResponseEntity.ok("Se envió un correo con las instrucciones para reestablecer tu contraseña");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("No se pudo reestablecer tu contraseña. Intenta de nuevo más tarde");
+        }
+    }
+
 }
