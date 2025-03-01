@@ -157,15 +157,22 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode("Password1"));
             user.setRequiere_cambio_contraseña(true);
             userRepository.save(user);
-            
-            // Enviar correo con instrucciones: el link debe dirigir a https://jucamdonaciones.org/contrasena
-            String resetLink = "https://jucamdonaciones.org/contrasena";
-            emailService.sendResetEmail(email, resetLink);
-            
+
+            // Enviar el correo de forma asíncrona para que no bloquee la respuesta
+            new Thread(() -> {
+                try {
+                    String resetLink = "https://jucamdonaciones.org/contrasena";
+                    emailService.sendResetEmail(email, resetLink);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+
             return ResponseEntity.ok("Se envió un correo con las instrucciones para reestablecer tu contraseña");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("No se pudo reestablecer tu contraseña. Intenta de nuevo más tarde");
         }
     }
+
 
 }
