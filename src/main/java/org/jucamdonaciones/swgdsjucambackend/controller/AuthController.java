@@ -2,6 +2,7 @@ package org.jucamdonaciones.swgdsjucambackend.controller;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Map;
 
 import org.jucamdonaciones.swgdsjucambackend.model.PasswordResetToken;
 import org.jucamdonaciones.swgdsjucambackend.model.User;
@@ -64,8 +65,8 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
          // 1) Validar reCAPTCHA
         String verifyUrl = "https://www.google.com/recaptcha/api/siteverify"
-            "?secret=" + recaptchaSecret
-            "&response=" + loginRequest.getRecaptchaToken();
+            + "?secret=" + recaptchaSecret
+            + "&response=" + loginRequest.getRecaptchaToken();
         @SuppressWarnings("unchecked")
         Map<String,Object> googleResponse = restTemplate.postForObject(verifyUrl, null, Map.class);
         boolean success = (Boolean) googleResponse.get("success");
