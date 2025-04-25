@@ -9,6 +9,7 @@ import org.jucamdonaciones.swgdsjucambackend.payload.LoginRequest;
 import org.jucamdonaciones.swgdsjucambackend.repository.PasswordResetTokenRepository;
 import org.jucamdonaciones.swgdsjucambackend.repository.UserRepository;
 import org.jucamdonaciones.swgdsjucambackend.service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +39,11 @@ public class AuthController {
     private final EmailService emailService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    
+    @Value("${recaptcha.secret}")
+    private String recaptchaSecret;
 
+    private final RestTemplate restTemplate = new RestTemplate();
 
 
     public AuthController(
@@ -56,6 +62,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+         // 1) Validar reCAPTCHA
+        String verifyUrl = "https://www.google.com/recaptcha/api/siteverify"
+            "?secret=" + recaptchaSecret
+            "&response=" + loginRequest.getRecaptchaToken();
+        @SuppressWarnings("unchecked")
+        Map<String,Object> googleResponse = restTemplate.postForObject(verifyUrl, null, Map.class);
+        boolean success = (Boolean) googleResponse.get("success");
+        if (!success) {
+            return ResponseEntity
+                .status(400)
+                .body("reCAPTCHA inválido");
+        }
+        
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
